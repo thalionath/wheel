@@ -11,11 +11,11 @@ namespace CrazyWheel
 {
     class WheelMotionViewModel : INotifyPropertyChanged
     {
-        private WheelMotion motion_ = new WheelMotion();
+        private WheelMotion motion_;
 
         private void updateModel()
         {
-            motion_.updateModel();
+            motion_.update();
             RaisePropertyChanged("Runtime");
             RaisePropertyChanged("PeakVelocity");
             RaisePropertyChanged("AccelerationTime");
@@ -32,13 +32,24 @@ namespace CrazyWheel
             get { return new Point(Radius, Radius); }
         }
 
-        public Point Start
+        public Point StartPoint
         {
             get
             {
                 return new Point(
                     Center.X + Math.Cos(StartAngle * Math.PI / 180) * Radius,
                     Center.Y + Math.Sin(StartAngle * Math.PI / 180) * Radius
+                );
+            }
+        }
+
+        public Point StopPoint
+        {
+            get
+            {
+                return new Point(
+                    Center.X + Math.Cos(StopAngle * Math.PI / 180) * Radius,
+                    Center.Y + Math.Sin(StopAngle * Math.PI / 180) * Radius
                 );
             }
         }
@@ -115,7 +126,7 @@ namespace CrazyWheel
                 motion_.StartAngle = value;
                 updateModel();
                 RaisePropertyChanged();
-                RaisePropertyChanged("Start");
+                RaisePropertyChanged("StartPoint");
             }
         }
 
@@ -127,6 +138,7 @@ namespace CrazyWheel
                 motion_.StopAngle = value;
                 updateModel();
                 RaisePropertyChanged();
+                RaisePropertyChanged("StopPoint");
             }
         }
 
@@ -138,6 +150,11 @@ namespace CrazyWheel
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(caller));
             }
+        }
+
+        public WheelMotionViewModel(WheelMotion motion)
+        {
+            motion_ = motion;
         }
 
     }

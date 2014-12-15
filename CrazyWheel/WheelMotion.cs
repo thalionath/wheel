@@ -6,10 +6,19 @@ using System.Threading.Tasks;
 
 namespace CrazyWheel
 {
+    /**
+     * @brief A mathematical model for a wheel motion with uniform acceleration and deceleration.
+     * 
+     * Runs no longer than t_max, not faster than v_max and stops exactly at StopAngle. 
+     * 
+     * @author Mario Gruber
+     */
     class WheelMotion
     {
-        private double v_max_ = 100.0;
-        private double t_max_ = 30.0;
+        private uint CIRCLE_DEGREES = 360;
+
+        private double v_max_ = 0.0;
+        private double t_max_ = 0.0;
 
         private double t_acceleration_ = 0.0;
         private double t_deceleration_ = 0.0;
@@ -62,16 +71,14 @@ namespace CrazyWheel
 
         public WheelMotion()
         {
-            Acceleration = 4;
-            Deceleration = -6;
-            StartAngle = 90;
-            StopAngle = 85;
         }
 
-        public void updateModel()
+        public void update()
         {
             // calculate v_peak of uniform acceleration followed by uniform deceleration (ignoring v_max)
-            // => the sum of accerleation and deceleration must equal zero
+            // to get the distance we are going to cover.
+
+            // => the sum of accerleation and deceleration must equal zero, solving the equation system leads to:
 
             t_acceleration_ = -1.0 * (t_max_ * Deceleration) / (Acceleration - Deceleration);
             t_deceleration_ = t_max_ - t_acceleration_;
@@ -79,38 +86,36 @@ namespace CrazyWheel
             v_peak_ = t_acceleration_ * Acceleration;
 
             double s = 0.0;
-
-            // we do not reach v_max if v_peak < v_max
-            if( v_peak_ > v_max_ )
+            
+            if( v_peak_ >= v_max_ )
             {
                 t_acceleration_ =  v_max_ / Acceleration;
                 t_deceleration_ = -v_max_ / Deceleration;
 
                 double t_flat = t_max_ - t_acceleration_ - t_deceleration_;
 
-                s = (t_acceleration_ + t_deceleration_) * v_max_ / 2.0
-                  + t_flat + v_max_;
+                s = (t_acceleration_ + t_deceleration_) * v_max_ / 2.0 + t_flat * v_max_;
             }
             else
             {
-                s = (t_max_ * v_peak_) / 2;
+                s = (t_max_ * v_peak_) / 2.0; // we do not reach v_max if v_peak < v_max
             }
 
             // adjust the actual distance to the target...
 
-            double angle = (StartAngle + s) % 360;
+            double angle = (StartAngle + s) % CIRCLE_DEGREES;
 
             if( StopAngle > angle )
             {
                 s -= angle;
-                s -= (360 - StopAngle);
+                s -= (CIRCLE_DEGREES - StopAngle);
             }
             else
             {
                 s -= (angle - StopAngle);
             }
 
-            // ...and back-calculate the runtimes
+            // ...and calculate back from the total distance to the times
 
             t_acceleration_ = Math.Sqrt((-2.0 * Deceleration * s) / (Acceleration * (Acceleration - Deceleration)));
             t_deceleration_ = (Acceleration * t_acceleration_) / (-Deceleration);
@@ -137,6 +142,46 @@ namespace CrazyWheel
 
                 v_peak_ = v_max_;
             }
+        }
+
+        /**
+         * @brief Returns the total distance covered so far as a function of elapsed motion time.
+         */
+        public double getDistance(double t)
+        {
+            if( t < t_acceleration_ )
+            {
+                return t * t * Acceleration / 2.0;
+            }
+            else if( t < (t_total_ - t_deceleration_) )
+            {
+                return t_acceleration_ * v_peak_ / 2.0 + (t - t_acceleration_) * v_peak_;
+            }
+            else if( t < t_total_ )
+            {
+                double t_const = t_total_ - t_acceleration_ - t_deceleration_;
+
+                t = t_total_ - t;
+
+                return t_acceleration_ * v_peak_ / 2.0
+                     + t_const * v_peak_
+                     + t_deceleration_ * v_peak_ / 2.0
+                     + t * t * Deceleration / 2.0;
+            }
+            else
+            {
+                double t_const = t_total_ - t_acceleration_ - t_deceleration_;
+
+                return t_acceleration_ * v_peak_ / 2.0 + t_const * v_peak_ + t_deceleration_ * v_peak_ / 2.0;
+            }
+        }
+
+        /**
+         * @brief Returns the current rotation angle as a function of elapsed motion time.
+         */
+        public double getAngle(double t)
+        {
+            return (StartAngle + getDistance(t)) % CIRCLE_DEGREES;
         }
 
     }
