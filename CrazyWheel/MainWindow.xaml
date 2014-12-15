@@ -50,6 +50,13 @@
         <TextBlock Grid.Row="3" Grid.Column="2" Text="Deceleration Time" />
         <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding DecelerationTime, Mode=OneWay}" />
 
+        
         <Ellipse Grid.Row="6" Grid.Column="1" Width="200" Height="200" Stroke="Black" />
+        <Line
+            Grid.Row="6" Grid.Column="1"
+            X1="{Binding Center.X, Mode=OneWay}" Y1="{Binding Center.Y, Mode=OneWay}"
+            X2="{Binding Start.X, Mode=OneWay}" Y2="{Binding Start.Y, Mode=OneWay}"
+            Stroke="Green"
+        />
     </Grid>
 </Window>

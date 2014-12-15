@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace CrazyWheel
 {
@@ -19,6 +20,27 @@ namespace CrazyWheel
             RaisePropertyChanged("PeakVelocity");
             RaisePropertyChanged("AccelerationTime");
             RaisePropertyChanged("DecelerationTime");
+        }
+
+        public double Radius
+        {
+            get { return 100.0; }
+        }
+
+        public Point Center
+        {
+            get { return new Point(Radius, Radius); }
+        }
+
+        public Point Start
+        {
+            get
+            {
+                return new Point(
+                    Center.X + Math.Cos(StartAngle * Math.PI / 180) * Radius,
+                    Center.Y + Math.Sin(StartAngle * Math.PI / 180) * Radius
+                );
+            }
         }
 
         public double Runtime
@@ -93,6 +115,7 @@ namespace CrazyWheel
                 motion_.StartAngle = value;
                 updateModel();
                 RaisePropertyChanged();
+                RaisePropertyChanged("Start");
             }
         }
 
